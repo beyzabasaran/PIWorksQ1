@@ -6,102 +6,120 @@ class Program
     {
 
 
-        //get input
-        var input = GetInput();
+        //get example input
+        var input = getGivenInput();
 
-        string[] arrayOfRowsByNewlines = input.Split('\n');
+        string[] rowArray = input.Split('\n');
+        //P.S. Dynamic Approach has been used in the algorithm
+        var dynamicTable = ConvertTriangleToTable(rowArray);
 
-        var tableHolder = FlattenTheTriangleIntoTable(arrayOfRowsByNewlines);
+        var result = traverseNodes(rowArray, dynamicTable);
 
-        var result = WalkThroughTheNode(arrayOfRowsByNewlines, tableHolder);
-
-        Console.WriteLine($"The Maximum Total Sum Of Non-Prime Numbers From Top To Bottom Is:  {result[0,0]}");
-
+        Console.WriteLine($"Maximum Total Sum Of the Non-Prime Numbers is {result[0,0]}");
+  
         Console.ReadKey();
     }
 
-    private static string GetInput()
+    private static string getGivenInput()
     {
-
-
         const string input =      @" 1
                                    8 4
                                   2 6 9
                                 8 5 9 3";
         return input;
     }
+  private static string getGivenSecondInput()
+    {
+        const string secondInput =   @" 215
+                                   193 124
+                                  117 237 442
+                                218 935 347 235
+                              320 804 522 417 345
+                            229 601 723 835 133 124
+                          248 202 277 433 207 263 257
+                        359 464 504 528 516 716 871 182
+                      461 441 426 656 863 560 380 171 923
+                     381 348 573 533 447 632 387 176 975 449
+                   223 711 445 645 245 543 931 532 937 541 444
+                 330 131 333 928 377 733 017 778 839 168 197 197
+                131 171 522 137 217 224 291 413 528 520 227 229 928
+              223 626 034 683 839 053 627 310 713 999 629 817 410 121
+            924 622 911 233 325 139 721 218 253 223 107 233 230 124 233";
+    
+        return secondInput;
+    }
 
-    private static int[,] WalkThroughTheNode(string[] arrayOfRowsByNewlines, int[,] tableHolder)
+    private static int[,] traverseNodes(string[] rowArray, int[,] dynamicTable)
     {
 
-       var resetResult= ResetAllPrimeNumbers(arrayOfRowsByNewlines, tableHolder); 
+       var resetPrimeNumsResult= ResetPrimeNumbers(rowArray, dynamicTable); 
 
         // walking through the non-prime node
-        for (int i = arrayOfRowsByNewlines.Length - 2; i >= 0; i--)
+        for (int i = rowArray.Length - 2; i >= 0; i--)
         {
-            for (int j = 0; j < arrayOfRowsByNewlines.Length; j++)
+            for (int j = 0; j < rowArray.Length; j++)
             {
-                var c = resetResult[i, j];
-                var a = resetResult[i + 1, j];
-                var b = resetResult[i + 1, j + 1];
-                //only sum through the non - prime node
-                if ((!IsPrime(c) && !IsPrime(a)) || (!IsPrime(c) && !IsPrime(b)))
-                    tableHolder[i, j] = c + Math.Max(a, b);
+                var c = resetPrimeNumsResult[i, j];
+                var a = resetPrimeNumsResult[i + 1, j];
+                var b = resetPrimeNumsResult[i + 1, j + 1];
+                //sum through the non-prime nodes
+                if ((!IsNumberPrime(c) && !IsNumberPrime(a)) || (!IsNumberPrime(c) && !IsNumberPrime(b)))
+                    dynamicTable[i, j] = c + Math.Max(a, b);
 
             }
         }
-        return tableHolder;
+        return dynamicTable;
     }
 
-    private static int[,] ResetAllPrimeNumbers(string[] arrayOfRowsByNewlines, int[,] tableHolder)
+    private static int[,] ResetPrimeNumbers(string[] rowArray, int[,] tableHolder)
     {
-        for (int i = 0; i < arrayOfRowsByNewlines.Length; i++)
+        for (int i = 0; i < rowArray.Length; i++)
         {
-            for (int j = 0; j < arrayOfRowsByNewlines.Length; j++)
+            for (int j = 0; j < rowArray.Length; j++)
             {
-                if (IsPrime(tableHolder[i, j]))
+                if (IsNumberPrime(tableHolder[i, j]))
                     tableHolder[i, j] = 0;
             }
         }
         return tableHolder;
     }
 
-    public static  Dictionary<int,bool> PrimeCache= new Dictionary<int, bool>();
-    private static int[,] FlattenTheTriangleIntoTable(string[] arrayOfRowsByNewlines)
+    public static  Dictionary<int,bool> PrimeList= new Dictionary<int, bool>();
+    private static int[,] ConvertTriangleToTable(string[] rowArray)
     {
-        int[,] tableHolder = new int[arrayOfRowsByNewlines.Length, arrayOfRowsByNewlines.Length + 1];
+        int[,] dynamicTable = new int[rowArray.Length, rowArray.Length + 1];
 
-        for (int row = 0; row < arrayOfRowsByNewlines.Length; row++)
+        for (int row = 0; row < rowArray.Length; row++)
         {
-            var eachCharactersInRow = arrayOfRowsByNewlines[row].Trim().Split(' ');
+            var RowCharacters = rowArray[row].Trim().Split(' ');
 
-            for (int column = 0; column < eachCharactersInRow.Length; column++)
+            for (int column = 0; column < RowCharacters.Length; column++)
             {
                 int number;
-                int.TryParse(eachCharactersInRow[column], out number);
-                tableHolder[row, column] = number;
+                int.TryParse(RowCharacters[column], out number);
+                dynamicTable[row, column] = number;
             }
         }
-        return tableHolder;
+        return dynamicTable;
     }
 
-    public static bool IsPrime(int number)
+    public static bool IsNumberPrime(int number)
     {
         // Test whether the parameter is a prime number.
-        if (PrimeCache.ContainsKey(number))
+        if (PrimeList.ContainsKey(number))
         {
             bool value;
-            PrimeCache.TryGetValue(number, out value);
+            PrimeList.TryGetValue(number, out value);
             return value;
         }
         if ((number & 1) == 0)
         {
             if (number == 2)
             {
-                if (!PrimeCache.ContainsKey(number)) PrimeCache.Add(number, true);
+                if (!PrimeList.ContainsKey(number)) PrimeList.Add(number, true);
                 return true;
             }
-            if (!PrimeCache.ContainsKey(number)) PrimeCache.Add(number, false);
+            if (!PrimeList.ContainsKey(number)) PrimeList.Add(number, false);
             return false;
         }
 
@@ -109,12 +127,12 @@ class Program
         {
             if ((number % i) == 0)
             {
-                if (!PrimeCache.ContainsKey(number)) PrimeCache.Add(number, false);
+                if (!PrimeList.ContainsKey(number)) PrimeList.Add(number, false);
                 return false;
             }
         }
         var check= number != 1;
-        if (!PrimeCache.ContainsKey(number)) PrimeCache.Add(number, check);
+        if (!PrimeList.ContainsKey(number)) PrimeList.Add(number, check);
         return check;
     }
 
